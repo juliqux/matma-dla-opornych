@@ -118,8 +118,8 @@
       const div = document.createElement("div");
       div.className = "equation";
       div.textContent = eq.text;
-      div.style.left = Math.random() * 80 + 10 + "%";
-
+      div.style.left = Math.random() * 40 + 30 + "%";
+      
       // nowe działanie nigdy nie spada szybciej niż poprzednie
       const duration = Math.max(minFallDuration, Math.random() * 5 + 4);
       minFallDuration = duration; // aktualizujemy minimalny czas
@@ -176,5 +176,6 @@
   </script>
 </body>
 </html>
+
 
 

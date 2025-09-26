@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Gra Matematyczna</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0d1b1e;
+      color: #00ffcc;
+      font-family: Consolas, monospace;
+      overflow: hidden;
+      text-align: center;
+    }
+    #game {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .equation {
+      position: absolute;
+      top: -40px;
+      background: rgba(0, 255, 204, 0.1);
+      border: 1px solid #00ffcc;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 20px;
+      animation: fall linear;
+    }
+    @keyframes fall {
+      from { top: -50px; }
+      to { top: 100vh; }
+    }
+    #inputBox {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    input {
+      font-size: 20px;
+      padding: 10px;
+      border: 2px solid #00ffcc;
+      background: #001010;
+      color: #00ffcc;
+      outline: none;
+    }
+    #status {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="inputBox">
+    <input type="text" id="answer" placeholder="Podaj wynik i Enter">
+  </div>
+  <div id="status">Rozwiązane: 0 / 20</div>
+
+  <script>
+    const game = document.getElementById("game");
+    const input = document.getElementById("answer");
+    const status = document.getElementById("status");
+
+    let solved = 0;
+    let activeEquations = [];
+    let gameOver = false;
+    let minFallDuration = 4; // minimalny czas spadania (będzie tylko rosnąć)
+
+    function randomEquation() {
+      const ops = ["+", "-", "×", "÷"];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+      let a, b, text, result;
+
+      switch(op) {
+        case "+":
+          a = Math.floor(Math.random() * 20) + 1;
+          b = Math.floor(Math.random() * 20) + 1;
+          result = a + b;
+          text = `${a} + ${b}`;
+          break;
+
+        case "-":
+          a = Math.floor(Math.random() * 20) + 1;
+          b = Math.floor(Math.random() * 20) + 1;
+          result = a - b;
+          text = `${a} - ${b}`;
+          break;
+
+        case "×":
+          a = Math.floor(Math.random() * 8) + 2; // 2–9
+          b = Math.floor(Math.random() * 8) + 2; // 2–9
+          result = a * b;
+          text = `${a} × ${b}`;
+          break;
+
+        case "÷":
+          b = Math.floor(Math.random() * 8) + 2; // dzielnik 2–9
+          result = Math.floor(Math.random() * 8) + 2; // wynik 2–9
+          a = b * result; // aby wynik był całkowity
+          text = `${a} ÷ ${b}`;
+          break;
+      }
+      return {text, result};
+    }
+
+    function spawnEquation() {
+      if (gameOver) return;
+
+      const eq = randomEquation();
+      const div = document.createElement("div");
+      div.className = "equation";
+      div.textContent = eq.text;
+      div.style.left = Math.random() * 80 + 10 + "%";
+
+      // nowe działanie nigdy nie spada szybciej niż poprzednie
+      const duration = Math.max(minFallDuration, Math.random() * 5 + 4);
+      minFallDuration = duration; // aktualizujemy minimalny czas
+      div.style.animationDuration = duration + "s";
+
+      game.appendChild(div);
+
+      const obj = {el: div, result: eq.result, timeout: null};
+      activeEquations.push(obj);
+
+      obj.timeout = setTimeout(() => {
+        if (!gameOver && game.contains(div)) {
+          endGame(false);
+        }
+      }, duration * 1000);
+
+      div.addEventListener("animationend", () => {
+        if (!gameOver && game.contains(div)) {
+          endGame(false);
+        }
+      });
+
+      // kolejne działanie pojawi się za 1–3 sekundy
+      setTimeout(spawnEquation, Math.random() * 2000 + 1000);
+    }
+
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !gameOver) {
+        const val = parseInt(input.value.trim());
+        input.value = "";
+        for (let i = 0; i < activeEquations.length; i++) {
+          if (activeEquations[i].result === val) {
+            clearTimeout(activeEquations[i].timeout);
+            game.removeChild(activeEquations[i].el);
+            activeEquations.splice(i, 1);
+            solved++;
+            status.textContent = `Rozwiązane: ${solved} / 20`;
+            if (solved >= 20) {
+              endGame(true);
+            }
+            return;
+          }
+        }
+      }
+    });
+
+    function endGame(win) {
+      gameOver = true;
+      alert(win ? "Wygrałeś! 🎉" : "Przegrałeś! ❌");
+      location.reload();
+    }
+
+    spawnEquation();
+  </script>
+</body>
+</html>

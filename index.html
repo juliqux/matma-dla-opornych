@@ -147,24 +147,33 @@
     }
 
     input.addEventListener("keydown", e => {
-      if (e.key === "Enter" && !gameOver) {
-        const val = parseInt(input.value.trim());
-        input.value = "";
-        for (let i = 0; i < activeEquations.length; i++) {
-          if (activeEquations[i].result === val) {
-            clearTimeout(activeEquations[i].timeout);
-            game.removeChild(activeEquations[i].el);
-            activeEquations.splice(i, 1);
-            solved++;
-            status.textContent = `Rozwiązane: ${solved} / 20`;
-            if (solved >= 20) {
-              endGame(true);
-            }
-            return;
-          }
+  if (e.key === "Enter" && !gameOver) {
+    const val = parseInt(input.value.trim());
+    input.value = "";
+    let found = false;
+
+    for (let i = 0; i < activeEquations.length; i++) {
+      if (activeEquations[i].result === val) {
+        clearTimeout(activeEquations[i].timeout);
+        game.removeChild(activeEquations[i].el);
+        activeEquations.splice(i, 1);
+        solved++;
+        status.textContent = `Rozwiązane: ${solved} / 20`;
+        if (solved >= 20) {
+          endGame(true);
         }
+        found = true;
+        break;
       }
-    });
+    }
+
+    // ❌ jeśli nie znaleziono żadnego równania z takim wynikiem → przegrana
+    if (!found) {
+      endGame(false);
+    }
+  }
+});
+
 
     function endGame(win) {
       gameOver = true;
@@ -176,6 +185,7 @@
   </script>
 </body>
 </html>
+
 
 
 
